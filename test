@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: MIT
+import smartpy as sp
+
+class QuantomNFT(sp.Contract):
+    def __init__(self, totalArtPieces):
+        self.init(
+            tokenIdCounter=1,
+            totalArtPieces=totalArtPieces,
+            artworks={},
+            owner=sp.sender
+        )
+
+    @sp.entry_point
+    def createArtPiece(self):
+        sp.verify(self.data.tokenIdCounter <= self.data.totalArtPieces, message="Maximum number of art pieces reached")
+        self.data.artworks[self.data.tokenIdCounter] = sp.sender
+        sp.set_type(self.data.artworks, sp.TBigMap(sp.TNat, sp.TAddress))
+        self.data.tokenIdCounter += 1
+
+@sp.add_test(name="QuantomNFT")
+def test():
+    scenario = sp.test_scenario()
+    c = QuantomNFT(totalArtPieces=5)
+    scenario += c
+
+    # Test createArtPiece
+    scenario += c.createArtPiece().run(sender=sp.address("tz1gjaF81ZRRvdzjobyfVNsAeSC6PScjfQwN"))
+
+    # Add more tests as needed
